@@ -531,6 +531,8 @@
 
     .field-input, .field-select{
       width:100%;
+      min-width:0;
+      max-width:100%;
       border:1px solid var(--line);
       border-radius:14px;
       padding:13px 14px;
@@ -543,9 +545,18 @@
 
     .date-add-row{
       display:grid;
-      grid-template-columns:1fr auto;
+      grid-template-columns:minmax(0,1fr);
       gap:8px;
       align-items:end;
+    }
+
+    .date-add-row > *{
+      min-width:0;
+      max-width:100%;
+    }
+
+    .date-add-row .secondary{
+      width:100%;
     }
 
     .secondary{
@@ -589,8 +600,17 @@
 
     .time-grid{
       display:grid;
-      grid-template-columns:1fr 1fr;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
       gap:10px;
+    }
+
+    .time-grid > div{
+      min-width:0;
+    }
+
+    .time-grid input[type="time"]{
+      min-width:0;
+      width:100%;
     }
 
     .creator-intro{
@@ -620,6 +640,16 @@
       white-space:nowrap;
       font-size:11px;
       color:var(--muted);
+    }
+
+    @media (min-width:560px){
+      .date-add-row{
+        grid-template-columns:minmax(0,1fr) auto;
+      }
+
+      .date-add-row .secondary{
+        width:auto;
+      }
     }
 
     @media (min-width:640px){
