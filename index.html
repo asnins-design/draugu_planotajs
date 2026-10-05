@@ -215,6 +215,97 @@
     .best-sub{font-size:12px;color:var(--muted);margin-top:2px}
     .best-score{font-size:13px;font-weight:800;background:#f7f3f6;border-radius:999px;padding:7px 9px;text-align:center}
 
+    .response-summary{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin:12px 0 0;
+      padding:10px 12px;
+      border-radius:14px;
+      background:#f7f9fd;
+      border:1px solid var(--line);
+      font-size:13px;
+    }
+
+    .response-summary strong{font-size:14px}
+
+    .done-btn{
+      border:1px solid var(--line);
+      background:white;
+      color:var(--text);
+      border-radius:12px;
+      padding:9px 11px;
+      font-weight:850;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+
+    .done-btn.done{
+      background:var(--yes);
+      border-color:#8dd2a1;
+    }
+
+    .person-pill.pending{
+      opacity:.5;
+    }
+
+    .person-state{
+      font-size:10px;
+      font-weight:900;
+      margin-left:2px;
+    }
+
+    .final-banner{
+      margin:0 0 14px;
+      padding:16px;
+      border-radius:18px;
+      background:linear-gradient(135deg,#eef4ff,#f8fbff);
+      border:1px solid #cfdcf6;
+      text-align:center;
+    }
+
+    .final-banner .final-kicker{
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--accent-strong);
+    }
+
+    .final-banner .final-main{
+      margin-top:5px;
+      font-size:22px;
+      font-weight:950;
+    }
+
+    .final-banner .final-sub{
+      margin-top:3px;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .final-banner button{
+      margin-top:10px;
+    }
+
+    .choose-time-btn{
+      border:0;
+      border-radius:11px;
+      padding:8px 10px;
+      background:var(--text);
+      color:white;
+      font-size:12px;
+      font-weight:850;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+
+    .best-card.finalized-choice{
+      border-color:#a9bfee;
+      box-shadow:0 0 0 2px rgba(111,143,216,.12);
+    }
+
     .people-row{
       display:flex;
       flex-wrap:wrap;
@@ -626,7 +717,12 @@
           <h2>🏆 Labākie varianti</h2>
           <div id="profileChip" class="profile-chip"></div>
         </div>
+        <div id="finalBanner" class="final-banner hidden"></div>
         <div id="bestGrid" class="best-grid"></div>
+        <div class="response-summary">
+          <strong id="responseCount">Atbildējuši 0/0</strong>
+          <button id="doneBtn" class="done-btn" type="button">✅ Esmu atbildējis</button>
+        </div>
         <div id="peopleRow" class="people-row"></div>
         <div class="status-line">
           <span id="statusDot" class="status-dot"></span>
@@ -723,6 +819,9 @@
     const chosenDates = $('#chosenDates');
     const createPlanBtn = $('#createPlanBtn');
     const createError = $('#createError');
+    const responseCount = $('#responseCount');
+    const doneBtn = $('#doneBtn');
+    const finalBanner = $('#finalBanner');
 
     function slotKey(day,time){ return `${day}|${time.slice(0,5)}`; }
 
@@ -924,9 +1023,18 @@
       if(!silent) setSyncStatus('Atjaunoju dalībniekus…','syncing');
 
       try{
+        const eventRes = await db
+          .from('events')
+          .select('*')
+          .eq('id', state.event.id)
+          .single();
+
+        if(eventRes.error) throw eventRes.error;
+        state.event = eventRes.data;
+
         const friendsRes = await db
           .from('friends')
-          .select('id,event_id,name,emoji,created_at')
+          .select('id,event_id,name,emoji,responded,created_at')
           .eq('event_id', state.event.id)
           .order('created_at', {ascending:true});
 
@@ -1032,7 +1140,7 @@
 
       try{
         // Friendly client-side uniqueness check for emoji identity.
-        const newestFriends = await db.from('friends').select('id,name,emoji').eq('event_id', state.event.id);
+        const newestFriends = await db.from('friends').select('id,name,emoji,responded').eq('event_id', state.event.id);
         if(newestFriends.error) throw newestFriends.error;
         if((newestFriends.data || []).some(f => f.emoji === state.emoji)){
           state.friends = newestFriends.data || [];
@@ -1044,7 +1152,7 @@
         const result = await db
           .from('friends')
           .insert({event_id:state.event.id, name, emoji:state.emoji})
-          .select('id,event_id,name,emoji,created_at')
+          .select('id,event_id,name,emoji,responded,created_at')
           .single();
 
         if(result.error) throw result.error;
@@ -1099,9 +1207,28 @@
     function renderPlanner(){
       if(!state.friendId) return;
       profileChip.textContent = `${state.emoji} ${state.name}`;
+      renderResponseState();
+      renderFinalBanner();
       renderPeople();
       renderDays();
       renderBest();
+    }
+
+    function getMe(){
+      return state.friends.find(f => f.id === state.friendId) || null;
+    }
+
+    function renderResponseState(){
+      const total = state.friends.length;
+      const responded = state.friends.filter(f => f.responded).length;
+      const me = getMe();
+
+      responseCount.textContent = `Atbildējuši ${responded}/${total}`;
+      doneBtn.classList.toggle('done', !!me?.responded);
+      doneBtn.textContent = me?.responded ? '✓ Atbilde iesniegta' : '✅ Esmu atbildējis';
+      doneBtn.title = me?.responded
+        ? 'Spied vēlreiz, ja gribi atzīmēt savu atbildi kā nepabeigtu.'
+        : 'Tavas izvēles kopējā rezultātā parādīsies pēc šīs pogas nospiešanas.';
     }
 
     function renderPeople(){
@@ -1109,9 +1236,12 @@
         peopleRow.innerHTML = '';
         return;
       }
-      peopleRow.innerHTML = state.friends.map(f =>
-        `<span class="person-pill" title="${escapeHtml(f.name)}">${f.emoji} ${escapeHtml(f.name)}</span>`
-      ).join('');
+      peopleRow.innerHTML = state.friends.map(f => {
+        const pendingClass = f.responded ? '' : ' pending';
+        const stateMark = f.responded ? '<span class="person-state">✓</span>' : '<span class="person-state">…</span>';
+        const stateText = f.responded ? 'atbildēja' : 'vēl nav pabeidzis';
+        return `<span class="person-pill${pendingClass}" title="${escapeHtml(f.name)} — ${stateText}">${f.emoji} ${escapeHtml(f.name)} ${stateMark}</span>`;
+      }).join('');
     }
 
     function renderDays(){
@@ -1133,13 +1263,14 @@
 
     function renderSlot(day,time){
       const mine = state.availability[slotKey(day.id,time)] || 0;
-      const attendees = state.friends
+      const visibleFriends = state.friends.filter(f => f.responded || f.id === state.friendId);
+      const attendees = visibleFriends
         .map(f => ({...f, value: f.id === state.friendId ? mine : getAvailabilityFor(f.id, day.id, time)}))
         .filter(f => f.value > 0);
 
       const yesCount = attendees.filter(f => f.value === 2).length;
       const maybeCount = attendees.filter(f => f.value === 1).length;
-      const total = state.friends.length;
+      const total = state.friends.filter(f => f.responded).length + (getMe()?.responded ? 0 : 1);
       const css = mine === 2 ? 'mine-yes' : mine === 1 ? 'mine-maybe' : '';
 
       const emojis = attendees.map(f => `
@@ -1156,7 +1287,8 @@
     }
 
     function scoreSlot(day,time){
-      const values = state.friends.map(f =>
+      const submittedFriends = state.friends.filter(f => f.responded);
+      const values = submittedFriends.map(f =>
         f.id === state.friendId
           ? (state.availability[slotKey(day,time)] || 0)
           : getAvailabilityFor(f.id, day, time)
@@ -1171,6 +1303,21 @@
     }
 
     function renderBest(){
+      const submittedCount = state.friends.filter(f => f.responded).length;
+
+      if(!submittedCount){
+        bestGrid.innerHTML = `
+          <div class="best-card" style="grid-column:1/-1">
+            <div class="medal">🫡</div>
+            <div>
+              <div class="best-main">Vēl gaidām pirmo atbildi</div>
+              <div class="best-sub">Atzīmē laikus un nospied “Esmu atbildējis”.</div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
       const scored = [];
       getDays().forEach(day => getTimes().forEach(time => scored.push(scoreSlot(day.id,time))));
       scored.sort((a,b) => b.score-a.score || b.yes-a.yes || a.unavailable-b.unavailable || a.time.localeCompare(b.time));
@@ -1181,26 +1328,144 @@
         const day = getDays().find(d => d.id===s.day);
         let status;
 
-        if(!s.total){
-          status = 'vēl tukšs';
-        }else if(s.yes === s.total){
+        if(s.yes === s.total){
           status = 'VISI VAR 🚨';
         }else{
           status = `${s.yes}/${s.total} var`;
           if(s.maybe) status += `, ${s.maybe} varētu`;
         }
 
+        const isChosen =
+          state.event?.finalized_date === s.day &&
+          String(state.event?.finalized_time || '').slice(0,5) === s.time;
+
+        const action = state.event?.finalized_date
+          ? ''
+          : `<button class="choose-time-btn" type="button" data-final-day="${s.day}" data-final-time="${s.time}">🎉 Sarunāts!</button>`;
+
         return `
-          <div class="best-card">
+          <div class="best-card ${isChosen?'finalized-choice':''}">
             <div class="medal">${medals[i]}</div>
             <div>
               <div class="best-main">${day.label} · ${s.time}</div>
               <div class="best-sub">${day.date}</div>
             </div>
-            <div class="best-score">${status}</div>
+            <div style="display:grid;gap:7px;justify-items:end">
+              <div class="best-score">${status}</div>
+              ${action}
+            </div>
           </div>
         `;
       }).join('');
+
+      bestGrid.querySelectorAll('[data-final-day]').forEach(btn => {
+        btn.addEventListener('click', () => finalizePlan(btn.dataset.finalDay, btn.dataset.finalTime));
+      });
+    }
+
+    function renderFinalBanner(){
+      const date = state.event?.finalized_date;
+      const time = String(state.event?.finalized_time || '').slice(0,5);
+
+      if(!date || !time){
+        finalBanner.classList.add('hidden');
+        finalBanner.innerHTML = '';
+        return;
+      }
+
+      const day = dayInfo(date);
+      finalBanner.innerHTML = `
+        <div class="final-kicker">🎉 Sarunāts</div>
+        <div class="final-main">${day.label} · ${time}</div>
+        <div class="final-sub">${day.date} · ${escapeHtml(state.event.name)}</div>
+        <button id="reopenPlanBtn" class="ghost-btn" type="button">Mainīt sarunāto laiku</button>
+      `;
+      finalBanner.classList.remove('hidden');
+
+      $('#reopenPlanBtn')?.addEventListener('click', reopenPlan);
+    }
+
+    async function finalizePlan(day,time){
+      const info = dayInfo(day);
+      const responded = state.friends.filter(f => f.responded).length;
+      const total = state.friends.length;
+      const warning = responded < total
+        ? `\n\nUzmanību: pagaidām atbildējuši ${responded}/${total}.`
+        : '';
+      const ok = window.confirm(`Sarunāts uz ${info.label}, ${info.date} plkst. ${time}?${warning}`);
+      if(!ok) return;
+
+      try{
+        setSyncStatus('Saglabāju sarunāto laiku…','syncing');
+        const result = await db
+          .from('events')
+          .update({finalized_date:day, finalized_time:time})
+          .eq('id', state.event.id)
+          .select()
+          .single();
+
+        if(result.error) throw result.error;
+        state.event = result.data;
+        renderPlanner();
+        setSyncStatus('Sarunātais laiks saglabāts','ok');
+        showToast('🎉 Sarunāts!');
+      }catch(err){
+        console.error(err);
+        setSyncStatus('Neizdevās saglabāt sarunāto laiku','error');
+        showToast('Neizdevās saglabāt 😭');
+      }
+    }
+
+    async function reopenPlan(){
+      const ok = window.confirm('Atvērt plānu atkal un izvēlēties citu laiku?');
+      if(!ok) return;
+
+      try{
+        const result = await db
+          .from('events')
+          .update({finalized_date:null, finalized_time:null})
+          .eq('id', state.event.id)
+          .select()
+          .single();
+
+        if(result.error) throw result.error;
+        state.event = result.data;
+        renderPlanner();
+        showToast('Plāns atkal atvērts ✨');
+      }catch(err){
+        console.error(err);
+        showToast('Neizdevās atvērt plānu no jauna 😭');
+      }
+    }
+
+    async function toggleResponded(){
+      const me = getMe();
+      if(!me) return;
+
+      doneBtn.disabled = true;
+      try{
+        await flushAvailabilityChanges();
+
+        const result = await db
+          .from('friends')
+          .update({responded:!me.responded})
+          .eq('id', state.friendId)
+          .select('id,event_id,name,emoji,responded,created_at')
+          .single();
+
+        if(result.error) throw result.error;
+
+        const idx = state.friends.findIndex(f => f.id === state.friendId);
+        if(idx >= 0) state.friends[idx] = result.data;
+
+        renderPlanner();
+        showToast(result.data.responded ? 'Atbilde iesniegta ✅' : 'Atbilde atkal ir melnrakstā');
+      }catch(err){
+        console.error(err);
+        showToast('Neizdevās saglabāt atbildes statusu 😭');
+      }finally{
+        doneBtn.disabled = false;
+      }
     }
 
     function applyBrush(slot, isInitial=false){
@@ -1385,6 +1650,7 @@ window.addEventListener('pointercancel', e => {
 
     nameInput.addEventListener('input', validateProfile);
     startBtn.addEventListener('click', joinPlanner);
+    doneBtn.addEventListener('click', toggleResponded);
 
     $('#refreshBtn').addEventListener('click', async () => {
       await loadSharedData();
@@ -1398,14 +1664,24 @@ window.addEventListener('pointercancel', e => {
     });
 
     $('#shareBtn').addEventListener('click', async () => {
-      const link = location.href;
+      const shareUrl = new URL(location.href);
+      shareUrl.searchParams.set('join', '1');
+      const link = shareUrl.toString();
       const title = state.event?.name || 'Kopīgais plāns';
+      const finalDate = state.event?.finalized_date;
+      const finalTime = String(state.event?.finalized_time || '').slice(0,5);
+      const shareText = finalDate && finalTime
+        ? (() => {
+            const d = dayInfo(finalDate);
+            return `Sarunāts: ${title} — ${d.label}, ${d.date} plkst. ${finalTime}`;
+          })()
+        : `Atzīmē, kad vari: ${title}`;
 
       try{
         if(navigator.share){
           await navigator.share({
             title,
-            text: `Atzīmē, kad vari: ${title}`,
+            text: shareText,
             url: link
           });
           return;
@@ -1439,13 +1715,36 @@ window.addEventListener('pointercancel', e => {
 
     async function init(){
       try{
-        const hasPlan = new URLSearchParams(location.search).has('plan');
+        const params = new URLSearchParams(location.search);
+        const hasPlan = params.has('plan');
+        const forceJoin = params.get('join') === '1';
+
         if(!hasPlan){
           showCreator();
           return;
         }
 
         await getEvent();
+
+        // A shared link should always start at the identity screen,
+        // even if this browser has used the same plan before.
+        if(forceJoin){
+          state.friendId = null;
+          state.name = '';
+          state.emoji = '';
+
+          await loadSharedData({silent:true});
+
+          // Remove the one-time flag from the address bar. After the person
+          // joins, future reloads can remember their own identity normally.
+          const cleanUrl = new URL(location.href);
+          cleanUrl.searchParams.delete('join');
+          history.replaceState({}, '', cleanUrl.toString());
+
+          showJoin();
+          return;
+        }
+
         loadIdentity();
         await loadSharedData({silent:true});
 
