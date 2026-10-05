@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#f6f8fc" />
+  <title>Kad tiekamies? ✨</title>
+  <style>
+    :root{
+      --bg:#f6f8fc;
+      --card:#ffffff;
+      --text:#252a34;
+      --muted:#6b7280;
+      --line:#e1e6ee;
+      --accent:#b8cdf8;
+      --accent-strong:#6f8fd8;
+      --yes:#c9efd4;
+      --maybe:#ffe6a7;
+      --danger:#f9d8de;
+      --shadow:0 12px 32px rgba(58,31,48,.08);
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:linear-gradient(180deg,#f6f8fc 0%,#fbfcff 100%);
+      color:var(--text);
+      min-height:100vh;
+    }
+
+    button,input{font:inherit}
+    button{touch-action:manipulation}
+
+    .app{
+      width:min(1100px,100%);
+      margin:0 auto;
+      padding:18px 14px 48px;
+    }
+
+    .hero{
+      text-align:center;
+      padding:16px 8px 10px;
+    }
+
+    .hero h1{
+      margin:0;
+      font-size:clamp(28px,6vw,48px);
+      line-height:1.04;
+      letter-spacing:-1.5px;
+    }
+
+    .hero p{
+      margin:10px 0 0;
+      color:var(--muted);
+      font-size:15px;
+    }
+
+    .plan-name{
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      margin-top:11px;
+      padding:7px 10px;
+      border-radius:999px;
+      background:#eef4ff;
+      border:1px solid #d9e4fb;
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .panel{
+      background:rgba(255,255,255,.9);
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      padding:16px;
+      margin-top:14px;
+    }
+
+    .panel-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+
+    .panel-title h2{
+      margin:0;
+      font-size:19px;
+      letter-spacing:-.3px;
+    }
+
+    .small-note{
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .profile-row{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+
+    .name-input{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:13px 14px;
+      background:white;
+      outline:none;
+    }
+
+    .name-input:focus{border-color:var(--accent-strong)}
+
+    .emoji-grid{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:8px;
+    }
+
+    .emoji-btn{
+      border:1px solid var(--line);
+      background:white;
+      min-height:44px;
+      border-radius:13px;
+      font-size:23px;
+      cursor:pointer;
+    }
+
+    .emoji-btn.selected{
+      border-color:var(--accent-strong);
+      background:#eef4ff;
+      transform:translateY(-1px);
+    }
+
+    .emoji-btn.taken{
+      opacity:.28;
+      cursor:not-allowed;
+      filter:grayscale(.7);
+    }
+
+    .primary{
+      width:100%;
+      border:0;
+      border-radius:14px;
+      padding:14px 16px;
+      background:var(--text);
+      color:white;
+      font-weight:800;
+      cursor:pointer;
+      margin-top:12px;
+    }
+
+    .primary:disabled{opacity:.4;cursor:not-allowed}
+
+    .hidden{display:none!important}
+
+    .profile-chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      background:#eef4ff;
+      border:1px solid #d9e4fb;
+      padding:8px 11px;
+      border-radius:999px;
+      font-weight:700;
+      font-size:14px;
+      white-space:nowrap;
+    }
+
+    .status-line{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:7px;
+      color:var(--muted);
+      font-size:12px;
+      margin:10px 0 0;
+      min-height:18px;
+    }
+
+    .status-dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:#9dd9ad;
+      box-shadow:0 0 0 4px rgba(157,217,173,.16);
+    }
+
+    .status-dot.syncing{background:#e7c66c;box-shadow:0 0 0 4px rgba(231,198,108,.15)}
+    .status-dot.error{background:#e69aa8;box-shadow:0 0 0 4px rgba(230,154,168,.15)}
+
+    .best-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+
+    .best-card{
+      border:1px solid var(--line);
+      border-radius:17px;
+      padding:13px;
+      background:white;
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      gap:10px;
+    }
+
+    .medal{font-size:24px}
+    .best-main{font-weight:850}
+    .best-sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .best-score{font-size:13px;font-weight:800;background:#f7f3f6;border-radius:999px;padding:7px 9px;text-align:center}
+
+    .people-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:7px;
+      margin-top:12px;
+    }
+
+    .person-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      padding:6px 9px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:white;
+      font-size:12px;
+      font-weight:750;
+    }
+
+    .brushbar{
+      position:sticky;
+      top:8px;
+      z-index:20;
+      display:flex;
+      gap:8px;
+      margin:14px 0 10px;
+      padding:8px;
+      background:rgba(255,255,255,.92);
+      border:1px solid var(--line);
+      border-radius:16px;
+      backdrop-filter:blur(10px);
+      box-shadow:0 8px 20px rgba(58,31,48,.06);
+    }
+
+    .brush{
+      flex:1;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:white;
+      padding:11px 8px;
+      font-weight:800;
+      cursor:pointer;
+      font-size:13px;
+    }
+
+    .brush.active[data-brush="2"]{background:var(--yes);border-color:#8dd2a1}
+    .brush.active[data-brush="1"]{background:var(--maybe);border-color:#e8c567}
+    .brush.active[data-brush="0"]{background:#f3f0f2;border-color:#d8cfd5}
+
+    .days{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+    }
+
+    .day-card{
+      background:white;
+      border:1px solid var(--line);
+      border-radius:20px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+
+    .day-head{
+      padding:14px 14px 12px;
+      border-bottom:1px solid var(--line);
+      background:#f8faff;
+    }
+
+    .day-head strong{display:block;font-size:16px}
+    .day-head span{font-size:12px;color:var(--muted)}
+
+    .slot{
+      display:grid;
+      grid-template-columns:58px 1fr auto;
+      gap:8px;
+      align-items:center;
+      min-height:58px;
+      padding:8px 11px;
+      border-bottom:1px solid #f0e8ed;
+      cursor:pointer;
+      user-select:none;
+      -webkit-user-select:none;
+      touch-action:pan-y;
+      transition:background .08s ease, transform .08s ease;
+    }
+
+    .slot:last-child{border-bottom:0}
+    .slot:active{transform:scale(.995)}
+    .slot.mine-yes{background:var(--yes)}
+    .slot.mine-maybe{background:var(--maybe)}
+
+    .time{font-weight:900;font-size:14px}
+
+    .friend-stack{
+      display:flex;
+      flex-wrap:wrap;
+      gap:3px;
+      min-height:26px;
+      align-items:center;
+    }
+
+    .friend-emoji{
+      width:26px;
+      height:26px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:#f7f3f6;
+      border:1px solid #ece2e9;
+      font-size:16px;
+    }
+
+    .friend-emoji.maybe{opacity:.46}
+
+    .count{
+      min-width:50px;
+      text-align:right;
+      font-size:12px;
+      font-weight:900;
+      color:#554a53;
+    }
+
+    .legend{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px 14px;
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .legend span{display:inline-flex;align-items:center;gap:5px}
+    .dot{width:12px;height:12px;border-radius:4px;border:1px solid rgba(0,0,0,.08)}
+    .dot.yes{background:var(--yes)}
+    .dot.maybe{background:var(--maybe)}
+
+    .footer-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      justify-content:center;
+      margin-top:16px;
+    }
+
+    .ghost-btn{
+      border:1px solid var(--line);
+      background:white;
+      color:var(--muted);
+      padding:10px 13px;
+      border-radius:12px;
+      cursor:pointer;
+      font-size:12px;
+    }
+
+    .loading-card{
+      text-align:center;
+      padding:28px 18px;
+      color:var(--muted);
+    }
+
+    .loader{
+      width:28px;
+      height:28px;
+      border:3px solid #f0e4eb;
+      border-top-color:var(--accent-strong);
+      border-radius:50%;
+      margin:0 auto 12px;
+      animation:spin .8s linear infinite;
+    }
+
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .error-box{
+      background:#fff5f6;
+      border:1px solid #f1cbd2;
+      color:#7d3d49;
+      border-radius:14px;
+      padding:12px;
+      font-size:13px;
+      margin-top:12px;
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%) translateY(20px);
+      background:#291f29;
+      color:white;
+      padding:10px 14px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:750;
+      opacity:0;
+      pointer-events:none;
+      transition:.2s ease;
+      z-index:50;
+      max-width:calc(100vw - 28px);
+      text-align:center;
+    }
+
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    .creator-panel{
+      max-width:720px;
+      margin:14px auto 0;
+    }
+
+    .creator-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+
+    .field-label{
+      display:block;
+      font-size:12px;
+      font-weight:850;
+      color:var(--muted);
+      margin:0 0 6px 2px;
+    }
+
+    .field-input, .field-select{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:13px 14px;
+      background:white;
+      color:var(--text);
+      outline:none;
+    }
+
+    .field-input:focus, .field-select:focus{border-color:var(--accent-strong)}
+
+    .date-add-row{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:8px;
+      align-items:end;
+    }
+
+    .secondary{
+      border:1px solid var(--line);
+      background:#eef4ff;
+      color:var(--text);
+      border-radius:14px;
+      padding:13px 14px;
+      font-weight:850;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+
+    .chosen-dates{
+      display:flex;
+      flex-wrap:wrap;
+      gap:7px;
+      margin-top:9px;
+    }
+
+    .date-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      border:1px solid #dbe4f2;
+      background:#f6f9ff;
+      border-radius:999px;
+      padding:7px 9px 7px 11px;
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .date-pill button{
+      border:0;
+      background:transparent;
+      cursor:pointer;
+      color:var(--muted);
+      padding:0 2px;
+      font-weight:900;
+    }
+
+    .time-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .creator-intro{
+      color:var(--muted);
+      margin:-2px 0 14px;
+      font-size:14px;
+      line-height:1.45;
+    }
+
+    .share-box{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top:12px;
+      padding:11px;
+      border-radius:15px;
+      background:#f7f9fd;
+      border:1px solid #dde5f2;
+    }
+
+    .share-box code{
+      flex:1;
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    @media (min-width:640px){
+      .creator-grid.two{grid-template-columns:1.4fr .6fr}
+    }
+
+    @media (min-width:780px){
+      .app{padding:28px 24px 60px}
+      .profile-row{grid-template-columns:1fr 1.3fr;align-items:start}
+      .best-grid{grid-template-columns:repeat(3,1fr)}
+      .days{grid-template-columns:repeat(3,1fr)}
+      .brushbar{max-width:660px;margin:16px auto 12px}
+      .slot{grid-template-columns:58px 1fr auto;min-height:62px}
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <h1>✨ Kad tiekamies?</h1>
+      <p>Atrodam laiku, kas der visiem.</p>
+      <div id="planName" class="plan-name hidden">📅 kopīgais plāns</div>
+    </section>
+
+    <section id="creatorPanel" class="panel creator-panel hidden">
+      <div class="panel-title">
+        <h2>📅 Jauns plāns</h2>
+        <span class="small-note">izveido jaunu kopīgo laiku</span>
+      </div>
+      <p class="creator-intro">Izvēlies datumus un laiku, kuros pārējie var atzīmēt savu pieejamību. Pēc tam nosūti visiem vienu kopīgu saiti.</p>
+
+      <div class="creator-grid">
+        <div>
+          <label class="field-label" for="newPlanName">Plāna nosaukums</label>
+          <input id="newPlanName" class="field-input" maxlength="60" value="Nākamā satikšanās ✨" placeholder="Piem., Vakariņas, galda spēles, sapulce…" />
+        </div>
+
+        <div>
+          <label class="field-label" for="newPlanDate">Datumi, kurus piedāvāt</label>
+          <div class="date-add-row">
+            <input id="newPlanDate" class="field-input" type="date" />
+            <button id="addDateBtn" class="secondary" type="button">+ Pievienot</button>
+          </div>
+          <div id="chosenDates" class="chosen-dates"></div>
+        </div>
+
+        <div class="time-grid">
+          <div>
+            <label class="field-label" for="newStartTime">No cikiem?</label>
+            <input id="newStartTime" class="field-input" type="time" value="17:00" />
+          </div>
+          <div>
+            <label class="field-label" for="newEndTime">Līdz cikiem?</label>
+            <input id="newEndTime" class="field-input" type="time" value="23:00" />
+          </div>
+        </div>
+
+        <div>
+          <label class="field-label" for="newSlotMinutes">Cik smalki dalām laikus?</label>
+          <select id="newSlotMinutes" class="field-select">
+            <option value="15">Ik pēc 15 minūtēm</option>
+            <option value="30">Ik pēc 30 minūtēm</option>
+            <option value="60" selected>Ik pēc 1 stundas</option>
+            <option value="90">Ik pēc 1,5 stundām</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="createPlanBtn" class="primary" type="button">✨ Izveidot plānu</button>
+      <div id="createError" class="error-box hidden"></div>
+    </section>
+
+    <section id="loadingPanel" class="panel loading-card">
+      <div class="loader"></div>
+      <div>Ielādēju kopīgo plānu…</div>
+    </section>
+
+    <section id="profilePanel" class="panel hidden">
+      <div class="panel-title">
+        <h2>Kas tu esi?</h2>
+        <span class="small-note">izvēlies savu emoji</span>
+      </div>
+
+      <div class="profile-row">
+        <input id="nameInput" class="name-input" type="text" maxlength="24" placeholder="Tavs vārds" autocomplete="name" />
+        <div id="emojiGrid" class="emoji-grid"></div>
+      </div>
+      <button id="startBtn" class="primary" disabled>✨ Pievienoties plānam</button>
+      <div id="joinError" class="error-box hidden"></div>
+    </section>
+
+    <section id="planner" class="hidden">
+      <section class="panel">
+        <div class="panel-title">
+          <h2>🏆 Labākie varianti</h2>
+          <div id="profileChip" class="profile-chip"></div>
+        </div>
+        <div id="bestGrid" class="best-grid"></div>
+        <div id="peopleRow" class="people-row"></div>
+        <div class="status-line">
+          <span id="statusDot" class="status-dot"></span>
+          <span id="syncStatus">Kopīgais plāns ir sinhronizēts</span>
+        </div>
+      </section>
+
+      <div class="brushbar" aria-label="Pieejamības izvēle">
+        <button class="brush active" data-brush="2">🟢 Varu</button>
+        <button class="brush" data-brush="1">🟡 Ja vajag</button>
+        <button class="brush" data-brush="0">✕ Notīrīt</button>
+      </div>
+
+      <section id="days" class="days"></section>
+
+      <div class="legend">
+        <span><i class="dot yes"></i> tavs “varu”</span>
+        <span><i class="dot maybe"></i> tavs “ja vajag”</span>
+        <span>blāvāks emoji = “ja vajag”</span>
+      </div>
+
+      <div class="footer-actions">
+        <button id="shareBtn" class="ghost-btn">🔗 Dalīties ar plānu</button>
+        <button id="refreshBtn" class="ghost-btn">↻ Atjaunot dalībniekus</button>
+        <button id="changeIdentityBtn" class="ghost-btn">Mainīt, kas es esmu</button>
+        <button id="newPlanBtn" class="ghost-btn">＋ Jauns plāns</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://nnyfiiqfzenzrohyivzq.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_Tm_BxujRl6VaH2eqwedeUQ_xzYUUdZr';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const EMOJIS = ['🐸','🦦','🐀','🐌','🦖','🐝','🐈‍⬛','🐙','👹','🍓','🪩','🧚','🦆','🐞','🐧','🦊','🐼','🐻','🐨','🦋','🌻','🌙','⭐','🍕','☕','🎲','🎧','🚲','🛸','🫐'];
+
+    // Fallback values are only used if an old plan is missing optional fields.
+    const DEFAULT_PLAN = {
+      slug: 'kopigais-plans',
+      name: 'Kopīgais plāns ✨',
+      dates: ['2026-09-10','2026-09-11','2026-09-12'],
+      start_time: '16:00',
+      end_time: '23:00',
+      slot_minutes: 60
+    };
+
+    const state = {
+      event: null,
+      friendId: null,
+      name: '',
+      emoji: '',
+      brush: 2,
+      availability: {},
+      friends: [],
+      allAvailability: [],
+      dragging: false,
+      dragValue: null,
+      visited: new Set(),
+      pending: new Map(),
+      syncTimer: null,
+      pollTimer: null,
+      refreshing: false,
+      newDates: []
+    };
+
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => [...document.querySelectorAll(sel)];
+
+    const creatorPanel = $('#creatorPanel');
+    const loadingPanel = $('#loadingPanel');
+    const profilePanel = $('#profilePanel');
+    const planner = $('#planner');
+    const emojiGrid = $('#emojiGrid');
+    const nameInput = $('#nameInput');
+    const startBtn = $('#startBtn');
+    const daysEl = $('#days');
+    const bestGrid = $('#bestGrid');
+    const peopleRow = $('#peopleRow');
+    const profileChip = $('#profileChip');
+    const planName = $('#planName');
+    const syncStatus = $('#syncStatus');
+    const statusDot = $('#statusDot');
+    const joinError = $('#joinError');
+    const toast = $('#toast');
+    const newPlanName = $('#newPlanName');
+    const newPlanDate = $('#newPlanDate');
+    const newStartTime = $('#newStartTime');
+    const newEndTime = $('#newEndTime');
+    const newSlotMinutes = $('#newSlotMinutes');
+    const chosenDates = $('#chosenDates');
+    const createPlanBtn = $('#createPlanBtn');
+    const createError = $('#createError');
+
+    function slotKey(day,time){ return `${day}|${time.slice(0,5)}`; }
+
+    function storageKey(){
+      return `meetingPlannerParticipant:${state.event?.slug || DEFAULT_PLAN.slug}`;
+    }
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast.t);
+      showToast.t = setTimeout(() => toast.classList.remove('show'), 1900);
+    }
+
+    function setSyncStatus(text, type='ok'){
+      syncStatus.textContent = text;
+      statusDot.className = 'status-dot';
+      if(type === 'syncing') statusDot.classList.add('syncing');
+      if(type === 'error') statusDot.classList.add('error');
+    }
+
+    function showFatalError(message){
+      loadingPanel.innerHTML = `<div style="font-size:28px;margin-bottom:8px">🥲</div><strong>Neizdevās ielādēt plānu</strong><div class="error-box">${escapeHtml(message)}</div>`;
+    }
+
+    function escapeHtml(value){
+      return String(value ?? '')
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'",'&#039;');
+    }
+
+    function capitalize(value){
+      return value ? value.charAt(0).toUpperCase() + value.slice(1) : value;
+    }
+
+    function dayInfo(dateString){
+      const date = new Date(`${dateString}T12:00:00`);
+      const weekday = capitalize(new Intl.DateTimeFormat('lv-LV',{weekday:'long'}).format(date));
+      const dateText = new Intl.DateTimeFormat('lv-LV',{day:'numeric',month:'long'}).format(date);
+      return { id: dateString, label: weekday, date: dateText };
+    }
+
+    function toMinutes(time){
+      const [h,m] = String(time).slice(0,5).split(':').map(Number);
+      return h*60 + m;
+    }
+
+    function minutesToTime(value){
+      const h = Math.floor(value/60);
+      const m = value%60;
+      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    }
+
+    function getDays(){
+      return (state.event?.dates || DEFAULT_PLAN.dates).map(dayInfo);
+    }
+
+    function getTimes(){
+      const start = toMinutes(state.event?.start_time || DEFAULT_PLAN.start_time);
+      const end = toMinutes(state.event?.end_time || DEFAULT_PLAN.end_time);
+      const step = Number(state.event?.slot_minutes || DEFAULT_PLAN.slot_minutes);
+      const result = [];
+      for(let t=start; t<=end; t+=step) result.push(minutesToTime(t));
+      return result;
+    }
+
+    async function getEvent(){
+      const requestedSlug = new URLSearchParams(location.search).get('plan');
+      if(!requestedSlug) return null;
+
+      const { data:event, error } = await db
+        .from('events')
+        .select('*')
+        .eq('slug', requestedSlug)
+        .maybeSingle();
+
+      if(error) throw error;
+      if(!event) throw new Error(`Plāns “${requestedSlug}” netika atrasts.`);
+
+      state.event = event;
+      planName.textContent = `📅 ${event.name}`;
+      planName.classList.remove('hidden');
+      document.title = `${event.name} · Kad tiekamies?`;
+      return event;
+    }
+
+    function slugify(value){
+      const base = String(value || 'plans')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g,'-')
+        .replace(/^-+|-+$/g,'')
+        .slice(0,36) || 'plans';
+      const tail = Math.random().toString(36).slice(2,7);
+      return `${base}-${tail}`;
+    }
+
+    function showCreator(){
+      clearInterval(state.pollTimer);
+      creatorPanel.classList.remove('hidden');
+      loadingPanel.classList.add('hidden');
+      profilePanel.classList.add('hidden');
+      planner.classList.add('hidden');
+      planName.classList.add('hidden');
+      document.title = 'Kad tiekamies? ✨';
+
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      newPlanDate.min = now.toISOString().slice(0,10);
+      if(!newPlanDate.value) newPlanDate.value = now.toISOString().slice(0,10);
+      renderChosenDates();
+    }
+
+    function renderChosenDates(){
+      const sorted = [...state.newDates].sort();
+      chosenDates.innerHTML = sorted.length
+        ? sorted.map(d => {
+            const info = dayInfo(d);
+            return `<span class="date-pill">${info.label}, ${info.date}<button type="button" data-remove-date="${d}" aria-label="Noņemt datumu">×</button></span>`;
+          }).join('')
+        : '<span class="small-note">Pievieno vismaz vienu datumu 👆</span>';
+
+      chosenDates.querySelectorAll('[data-remove-date]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.newDates = state.newDates.filter(d => d !== btn.dataset.removeDate);
+          renderChosenDates();
+        });
+      });
+    }
+
+    function addChosenDate(){
+      const d = newPlanDate.value;
+      if(!d) return;
+      if(!state.newDates.includes(d)) state.newDates.push(d);
+      state.newDates.sort();
+      renderChosenDates();
+    }
+
+    async function createPlan(){
+      const name = newPlanName.value.trim();
+      const start = newStartTime.value;
+      const end = newEndTime.value;
+      const slotMinutes = Number(newSlotMinutes.value);
+      createError.classList.add('hidden');
+
+      if(!name){
+        createError.textContent = 'Iedod plānam nosaukumu 💌';
+        createError.classList.remove('hidden');
+        return;
+      }
+      if(!state.newDates.length){
+        createError.textContent = 'Pievieno vismaz vienu datumu.';
+        createError.classList.remove('hidden');
+        return;
+      }
+      if(!start || !end || toMinutes(end) <= toMinutes(start)){
+        createError.textContent = 'Beigu laikam jābūt vēlākam par sākuma laiku.';
+        createError.classList.remove('hidden');
+        return;
+      }
+
+      createPlanBtn.disabled = true;
+      createPlanBtn.textContent = 'Veidoju plānu…';
+
+      try{
+        const payload = {
+          name,
+          slug: slugify(name),
+          dates: [...state.newDates].sort(),
+          start_time: start,
+          end_time: end,
+          slot_minutes: slotMinutes
+        };
+
+        const result = await db.from('events').insert(payload).select().single();
+        if(result.error) throw result.error;
+
+        const url = new URL(location.href);
+        url.search = '';
+        url.searchParams.set('plan', result.data.slug);
+        location.href = url.toString();
+      }catch(err){
+        console.error(err);
+        createError.textContent = err?.message || 'Neizdevās izveidot plānu.';
+        createError.classList.remove('hidden');
+      }finally{
+        createPlanBtn.disabled = false;
+        createPlanBtn.textContent = '✨ Izveidot plānu';
+      }
+    }
+
+    async function loadSharedData({silent=false} = {}){
+      if(state.refreshing || !state.event) return;
+      if(state.dragging || state.pending.size) return;
+      state.refreshing = true;
+      if(!silent) setSyncStatus('Atjaunoju dalībniekus…','syncing');
+
+      try{
+        const friendsRes = await db
+          .from('friends')
+          .select('id,event_id,name,emoji,created_at')
+          .eq('event_id', state.event.id)
+          .order('created_at', {ascending:true});
+
+        if(friendsRes.error) throw friendsRes.error;
+        state.friends = friendsRes.data || [];
+
+        const friendIds = state.friends.map(f => f.id);
+        let availability = [];
+
+        if(friendIds.length){
+          const availabilityRes = await db
+            .from('availability')
+            .select('id,friend_id,slot_date,slot_time,status')
+            .in('friend_id', friendIds);
+
+          if(availabilityRes.error) throw availabilityRes.error;
+          availability = availabilityRes.data || [];
+        }
+
+        state.allAvailability = availability;
+        rebuildMineFromShared();
+
+        if(state.friendId && !state.friends.some(f => f.id === state.friendId)){
+          forgetIdentity(false);
+          showJoin();
+          showToast('Šis dalībnieks vairs nav pieejams 👻');
+          return;
+        }
+
+        if(!silent) setSyncStatus('Kopīgais plāns ir sinhronizēts','ok');
+        else setSyncStatus('Kopīgais plāns ir sinhronizēts','ok');
+
+        if(state.friendId) renderPlanner();
+        else buildEmojiGrid();
+      }catch(err){
+        console.error(err);
+        setSyncStatus('Neizdevās atjaunot — mēģināšu vēlreiz','error');
+        if(!silent) showToast('Hmm, neizdevās atjaunot 😵‍💫');
+      }finally{
+        state.refreshing = false;
+      }
+    }
+
+    function rebuildMineFromShared(){
+      if(!state.friendId) return;
+      const mine = {};
+      state.allAvailability
+        .filter(a => a.friend_id === state.friendId)
+        .forEach(a => {
+          mine[slotKey(a.slot_date, a.slot_time)] = a.status === 'yes' ? 2 : 1;
+        });
+      state.availability = mine;
+    }
+
+    function getAvailabilityFor(friendId, day, time){
+      const row = state.allAvailability.find(a =>
+        a.friend_id === friendId &&
+        a.slot_date === day &&
+        String(a.slot_time).slice(0,5) === time
+      );
+      if(!row) return 0;
+      return row.status === 'yes' ? 2 : 1;
+    }
+
+    function buildEmojiGrid(){
+      const taken = new Set(state.friends.filter(f => f.id !== state.friendId).map(f => f.emoji));
+      emojiGrid.innerHTML = EMOJIS.map(e => {
+        const isTaken = taken.has(e);
+        return `<button class="emoji-btn ${isTaken?'taken':''}" type="button" data-emoji="${e}" ${isTaken?'disabled':''} title="${isTaken?'Šo emoji jau izvēlējies cits dalībnieks':''}">${e}</button>`;
+      }).join('');
+
+      $$('.emoji-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.emoji = btn.dataset.emoji;
+          $$('.emoji-btn').forEach(b => b.classList.toggle('selected', b === btn));
+          validateProfile();
+        });
+      });
+    }
+
+    function validateProfile(){
+      startBtn.disabled = !(nameInput.value.trim() && state.emoji);
+    }
+
+    function showJoin(){
+      creatorPanel.classList.add('hidden');
+      loadingPanel.classList.add('hidden');
+      planner.classList.add('hidden');
+      profilePanel.classList.remove('hidden');
+      joinError.classList.add('hidden');
+      state.emoji = '';
+      buildEmojiGrid();
+      validateProfile();
+    }
+
+    async function joinPlanner(){
+      const name = nameInput.value.trim();
+      if(!name || !state.emoji || !state.event) return;
+
+      startBtn.disabled = true;
+      startBtn.textContent = 'Pievienojos…';
+      joinError.classList.add('hidden');
+
+      try{
+        // Friendly client-side uniqueness check for emoji identity.
+        const newestFriends = await db.from('friends').select('id,name,emoji').eq('event_id', state.event.id);
+        if(newestFriends.error) throw newestFriends.error;
+        if((newestFriends.data || []).some(f => f.emoji === state.emoji)){
+          state.friends = newestFriends.data || [];
+          state.emoji = '';
+          buildEmojiGrid();
+          throw new Error('Kāds tikko izvēlējās šo emoji. Izvēlies citu 😭');
+        }
+
+        const result = await db
+          .from('friends')
+          .insert({event_id:state.event.id, name, emoji:state.emoji})
+          .select('id,event_id,name,emoji,created_at')
+          .single();
+
+        if(result.error) throw result.error;
+
+        state.friendId = result.data.id;
+        state.name = result.data.name;
+        state.emoji = result.data.emoji;
+        localStorage.setItem(storageKey(), JSON.stringify({friendId:state.friendId}));
+
+        await loadSharedData();
+        openPlanner();
+        showToast(`${state.emoji} ${state.name} pievienojās!`);
+      }catch(err){
+        console.error(err);
+        joinError.textContent = err.message || 'Neizdevās pievienoties.';
+        joinError.classList.remove('hidden');
+      }finally{
+        startBtn.textContent = '✨ Pievienoties plānam';
+        validateProfile();
+      }
+    }
+
+    function loadIdentity(){
+      try{
+        const saved = JSON.parse(localStorage.getItem(storageKey()));
+        state.friendId = saved?.friendId || null;
+      }catch{
+        state.friendId = null;
+      }
+    }
+
+    function hydrateIdentityFromFriends(){
+      if(!state.friendId) return false;
+      const me = state.friends.find(f => f.id === state.friendId);
+      if(!me) return false;
+      state.name = me.name;
+      state.emoji = me.emoji;
+      return true;
+    }
+
+    function openPlanner(){
+      creatorPanel.classList.add('hidden');
+      profilePanel.classList.add('hidden');
+      loadingPanel.classList.add('hidden');
+      planner.classList.remove('hidden');
+      profileChip.textContent = `${state.emoji} ${state.name}`;
+      renderPlanner();
+      startPolling();
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    function renderPlanner(){
+      if(!state.friendId) return;
+      profileChip.textContent = `${state.emoji} ${state.name}`;
+      renderPeople();
+      renderDays();
+      renderBest();
+    }
+
+    function renderPeople(){
+      if(!state.friends.length){
+        peopleRow.innerHTML = '';
+        return;
+      }
+      peopleRow.innerHTML = state.friends.map(f =>
+        `<span class="person-pill" title="${escapeHtml(f.name)}">${f.emoji} ${escapeHtml(f.name)}</span>`
+      ).join('');
+    }
+
+    function renderDays(){
+      const days = getDays();
+      const times = getTimes();
+
+      daysEl.innerHTML = days.map(day => `
+        <article class="day-card">
+          <header class="day-head">
+            <strong>${day.label}</strong>
+            <span>${day.date}</span>
+          </header>
+          <div>
+            ${times.map(time => renderSlot(day,time)).join('')}
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function renderSlot(day,time){
+      const mine = state.availability[slotKey(day.id,time)] || 0;
+      const attendees = state.friends
+        .map(f => ({...f, value: f.id === state.friendId ? mine : getAvailabilityFor(f.id, day.id, time)}))
+        .filter(f => f.value > 0);
+
+      const yesCount = attendees.filter(f => f.value === 2).length;
+      const maybeCount = attendees.filter(f => f.value === 1).length;
+      const total = state.friends.length;
+      const css = mine === 2 ? 'mine-yes' : mine === 1 ? 'mine-maybe' : '';
+
+      const emojis = attendees.map(f => `
+        <span class="friend-emoji ${f.value===1?'maybe':''}" title="${escapeHtml(f.name)}${f.value===1?' — ja vajag':''}">${f.emoji}</span>
+      `).join('');
+
+      return `
+        <div class="slot ${css}" data-day="${day.id}" data-time="${time}">
+          <div class="time">${time}</div>
+          <div class="friend-stack">${emojis}</div>
+          <div class="count">${yesCount}${maybeCount ? ` +${maybeCount}?` : ''}/${total}</div>
+        </div>
+      `;
+    }
+
+    function scoreSlot(day,time){
+      const values = state.friends.map(f =>
+        f.id === state.friendId
+          ? (state.availability[slotKey(day,time)] || 0)
+          : getAvailabilityFor(f.id, day, time)
+      );
+
+      const yes = values.filter(v => v===2).length;
+      const maybe = values.filter(v => v===1).length;
+      const unavailable = values.filter(v => v===0).length;
+      const score = yes*2 + maybe;
+
+      return {day,time,yes,maybe,unavailable,score,total:values.length};
+    }
+
+    function renderBest(){
+      const scored = [];
+      getDays().forEach(day => getTimes().forEach(time => scored.push(scoreSlot(day.id,time))));
+      scored.sort((a,b) => b.score-a.score || b.yes-a.yes || a.unavailable-b.unavailable || a.time.localeCompare(b.time));
+      const top = scored.slice(0,3);
+      const medals = ['🥇','🥈','🥉'];
+
+      bestGrid.innerHTML = top.map((s,i) => {
+        const day = getDays().find(d => d.id===s.day);
+        let status;
+
+        if(!s.total){
+          status = 'vēl tukšs';
+        }else if(s.yes === s.total){
+          status = 'VISI VAR 🚨';
+        }else{
+          status = `${s.yes}/${s.total} var`;
+          if(s.maybe) status += `, ${s.maybe} varētu`;
+        }
+
+        return `
+          <div class="best-card">
+            <div class="medal">${medals[i]}</div>
+            <div>
+              <div class="best-main">${day.label} · ${s.time}</div>
+              <div class="best-sub">${day.date}</div>
+            </div>
+            <div class="best-score">${status}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function applyBrush(slot, isInitial=false){
+      if(!slot || !slot.classList.contains('slot')) return;
+      const k = slotKey(slot.dataset.day, slot.dataset.time);
+      if(state.visited.has(k)) return;
+      state.visited.add(k);
+
+      const current = state.availability[k] || 0;
+      let value = state.dragValue;
+
+      if(isInitial){
+        value = current === state.brush ? 0 : state.brush;
+        state.dragValue = value;
+      }
+
+      if(value === 0) delete state.availability[k];
+      else state.availability[k] = value;
+
+      state.pending.set(k, {
+        day: slot.dataset.day,
+        time: slot.dataset.time,
+        value
+      });
+
+      renderDays();
+      renderBest();
+      scheduleSync();
+    }
+
+    function scheduleSync(){
+      clearTimeout(state.syncTimer);
+      setSyncStatus('Saglabāju tavas izvēles…','syncing');
+      state.syncTimer = setTimeout(flushAvailabilityChanges, 350);
+    }
+
+    async function flushAvailabilityChanges(){
+      if(!state.friendId || !state.pending.size) return;
+      const changes = [...state.pending.values()];
+      state.pending.clear();
+
+      const upserts = changes
+        .filter(c => c.value > 0)
+        .map(c => ({
+          friend_id: state.friendId,
+          slot_date: c.day,
+          slot_time: c.time,
+          status: c.value === 2 ? 'yes' : 'maybe'
+        }));
+
+      try{
+        if(upserts.length){
+          const upsertRes = await db
+            .from('availability')
+            .upsert(upserts, {onConflict:'friend_id,slot_date,slot_time'});
+          if(upsertRes.error) throw upsertRes.error;
+        }
+
+        for(const c of changes.filter(c => c.value === 0)){
+          const deleteRes = await db
+            .from('availability')
+            .delete()
+            .eq('friend_id', state.friendId)
+            .eq('slot_date', c.day)
+            .eq('slot_time', c.time);
+          if(deleteRes.error) throw deleteRes.error;
+        }
+
+        setSyncStatus('Saglabāts — visi redzēs tavas izvēles','ok');
+        await loadSharedData({silent:true});
+      }catch(err){
+        console.error(err);
+        setSyncStatus('Neizdevās saglabāt — pieskaries vēlreiz','error');
+        showToast('Neizdevās saglabāt 😭');
+        // Reload server truth so the UI does not pretend an unsaved choice worked.
+        await loadSharedData({silent:true});
+      }
+    }
+
+    function findSlotAtPointer(e){
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      return el?.closest?.('.slot') || null;
+    }
+
+let touchCandidate = null;
+
+daysEl.addEventListener('pointerdown', e => {
+  const slot = e.target.closest('.slot');
+  if(!slot) return;
+
+  // Desktop: keep click-and-drag selection.
+  if(e.pointerType === 'mouse'){
+    e.preventDefault();
+    state.dragging = true;
+    state.visited.clear();
+    applyBrush(slot, true);
+    return;
+  }
+
+  // Mobile/tablet: wait to see whether this is a tap or a scroll.
+  touchCandidate = {
+    pointerId: e.pointerId,
+    slot,
+    startX: e.clientX,
+    startY: e.clientY,
+    moved: false
+  };
+});
+
+window.addEventListener('pointermove', e => {
+  if(state.dragging){
+    e.preventDefault();
+    const slot = findSlotAtPointer(e);
+    if(slot) applyBrush(slot, false);
+    return;
+  }
+
+  if(touchCandidate && e.pointerId === touchCandidate.pointerId){
+    const dx = Math.abs(e.clientX - touchCandidate.startX);
+    const dy = Math.abs(e.clientY - touchCandidate.startY);
+
+    if(dx > 8 || dy > 8){
+      touchCandidate.moved = true;
+    }
+  }
+}, {passive:false});
+
+window.addEventListener('pointerup', e => {
+  if(touchCandidate && e.pointerId === touchCandidate.pointerId){
+    if(!touchCandidate.moved){
+      state.visited.clear();
+      applyBrush(touchCandidate.slot, true);
+      state.dragValue = null;
+      state.visited.clear();
+    }
+
+    touchCandidate = null;
+    return;
+  }
+
+  if(!state.dragging) return;
+
+  state.dragging = false;
+  state.dragValue = null;
+  state.visited.clear();
+  scheduleSync();
+});
+
+window.addEventListener('pointercancel', e => {
+  if(touchCandidate && e.pointerId === touchCandidate.pointerId){
+    touchCandidate = null;
+  }
+
+  if(state.dragging){
+    state.dragging = false;
+    state.dragValue = null;
+    state.visited.clear();
+    scheduleSync();
+  }
+});
+    $$('.brush').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.brush = Number(btn.dataset.brush);
+        $$('.brush').forEach(b => b.classList.toggle('active', b===btn));
+      });
+    });
+
+    function forgetIdentity(showToastAfter=true){
+      if(state.event) localStorage.removeItem(storageKey());
+      state.friendId = null;
+      state.name = '';
+      state.emoji = '';
+      state.availability = {};
+      nameInput.value = '';
+      if(showToastAfter) showToast('Šajā ierīcē vari izvēlēties citu dalībnieku 👋');
+    }
+
+    function startPolling(){
+      clearInterval(state.pollTimer);
+      state.pollTimer = setInterval(() => loadSharedData({silent:true}), 4000);
+    }
+
+    nameInput.addEventListener('input', validateProfile);
+    startBtn.addEventListener('click', joinPlanner);
+
+    $('#refreshBtn').addEventListener('click', async () => {
+      await loadSharedData();
+      showToast('Dalībnieki atjaunoti ✨');
+    });
+
+    $('#changeIdentityBtn').addEventListener('click', () => {
+      forgetIdentity();
+      showJoin();
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+
+    $('#shareBtn').addEventListener('click', async () => {
+      const link = location.href;
+      const title = state.event?.name || 'Kopīgais plāns';
+
+      try{
+        if(navigator.share){
+          await navigator.share({
+            title,
+            text: `Atzīmē, kad vari: ${title}`,
+            url: link
+          });
+          return;
+        }
+
+        await navigator.clipboard.writeText(link);
+        showToast('Plāna saite nokopēta 🔗');
+      }catch(err){
+        if(err?.name === 'AbortError') return;
+
+        try{
+          await navigator.clipboard.writeText(link);
+          showToast('Plāna saite nokopēta 🔗');
+        }catch{
+          window.prompt('Nokopē šo saiti:', link);
+        }
+      }
+    });
+
+    $('#newPlanBtn').addEventListener('click', () => {
+      const url = new URL(location.href);
+      url.search = '';
+      location.href = url.toString();
+    });
+
+    $('#addDateBtn').addEventListener('click', addChosenDate);
+    newPlanDate.addEventListener('keydown', e => {
+      if(e.key === 'Enter'){ e.preventDefault(); addChosenDate(); }
+    });
+    createPlanBtn.addEventListener('click', createPlan);
+
+    async function init(){
+      try{
+        const hasPlan = new URLSearchParams(location.search).has('plan');
+        if(!hasPlan){
+          showCreator();
+          return;
+        }
+
+        await getEvent();
+        loadIdentity();
+        await loadSharedData({silent:true});
+
+        if(state.friendId && hydrateIdentityFromFriends()){
+          rebuildMineFromShared();
+          openPlanner();
+        }else{
+          if(state.friendId) forgetIdentity(false);
+          showJoin();
+        }
+      }catch(err){
+        console.error(err);
+        const detail = err?.message || String(err);
+        showFatalError(`${detail} Pārbaudi, vai Supabase SQL tabulas un piekļuves politikas ir izveidotas.`);
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
