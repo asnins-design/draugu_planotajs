@@ -703,6 +703,11 @@
         <span class="small-note">izvēlies savu emoji</span>
       </div>
 
+      <div id="continueBox" class="hidden" style="margin-bottom:12px">
+        <button id="continueBtn" class="primary" type="button" style="margin-top:0"></button>
+        <div class="small-note" style="text-align:center;margin-top:7px">vai pievienojies kā cits cilvēks</div>
+      </div>
+
       <div class="profile-row">
         <input id="nameInput" class="name-input" type="text" maxlength="24" placeholder="Tavs vārds" autocomplete="name" />
         <div id="emojiGrid" class="emoji-grid"></div>
@@ -819,6 +824,8 @@
     const chosenDates = $('#chosenDates');
     const createPlanBtn = $('#createPlanBtn');
     const createError = $('#createError');
+    const continueBox = $('#continueBox');
+    const continueBtn = $('#continueBtn');
     const responseCount = $('#responseCount');
     const doneBtn = $('#doneBtn');
     const finalBanner = $('#finalBanner');
@@ -1119,12 +1126,29 @@
       startBtn.disabled = !(nameInput.value.trim() && state.emoji);
     }
 
-    function showJoin(){
+    function showJoin({savedFriend=null} = {}){
       creatorPanel.classList.add('hidden');
       loadingPanel.classList.add('hidden');
       planner.classList.add('hidden');
       profilePanel.classList.remove('hidden');
       joinError.classList.add('hidden');
+
+      if(savedFriend){
+        continueBtn.textContent = `Turpināt kā ${savedFriend.emoji} ${savedFriend.name}`;
+        continueBox.classList.remove('hidden');
+        continueBtn.onclick = () => {
+          state.friendId = savedFriend.id;
+          state.name = savedFriend.name;
+          state.emoji = savedFriend.emoji;
+          localStorage.setItem(storageKey(), JSON.stringify({friendId:state.friendId}));
+          rebuildMineFromShared();
+          openPlanner();
+        };
+      }else{
+        continueBox.classList.add('hidden');
+        continueBtn.onclick = null;
+      }
+
       state.emoji = '';
       buildEmojiGrid();
       validateProfile();
@@ -1726,22 +1750,29 @@ window.addEventListener('pointercancel', e => {
 
         await getEvent();
 
-        // A shared link should always start at the identity screen,
-        // even if this browser has used the same plan before.
+        // A shared link should always start at the identity screen.
+        // If this device already knows who the user is, offer a one-tap
+        // "continue as..." option instead of pretending they are new.
         if(forceJoin){
-          state.friendId = null;
-          state.name = '';
-          state.emoji = '';
-
+          loadIdentity();
           await loadSharedData({silent:true});
 
-          // Remove the one-time flag from the address bar. After the person
-          // joins, future reloads can remember their own identity normally.
+          let savedFriend = null;
+          if(state.friendId){
+            savedFriend = state.friends.find(f => f.id === state.friendId) || null;
+          }
+
+          // Remove the one-time flag from the address bar. After this screen,
+          // the browser can remember the chosen identity normally.
           const cleanUrl = new URL(location.href);
           cleanUrl.searchParams.delete('join');
           history.replaceState({}, '', cleanUrl.toString());
 
-          showJoin();
+          state.friendId = null;
+          state.name = '';
+          state.emoji = '';
+
+          showJoin({savedFriend});
           return;
         }
 
