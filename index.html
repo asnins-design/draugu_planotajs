@@ -540,23 +540,27 @@
       color:var(--text);
       outline:none;
     }
-
+    input[type="date"],
+    input[type="time"]{
+      -webkit-appearance:none;
+      appearance:none;
+    }
     .field-input:focus, .field-select:focus{border-color:var(--accent-strong)}
 
     .date-add-row{
       display:grid;
-      grid-template-columns:minmax(0,1fr);
+      grid-template-columns:minmax(0,1fr) auto;
       gap:8px;
       align-items:end;
     }
-
+    
     .date-add-row > *{
       min-width:0;
-      max-width:100%;
     }
-
+    
     .date-add-row .secondary{
-      width:100%;
+      width:auto;
+      padding:11px 12px;
     }
 
     .secondary{
@@ -600,17 +604,22 @@
 
     .time-grid{
       display:grid;
-      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-      gap:10px;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
     }
-
+    
     .time-grid > div{
       min-width:0;
     }
-
+    
     .time-grid input[type="time"]{
-      min-width:0;
+      display:block;
       width:100%;
+      min-width:0;
+      max-width:100%;
+      padding:10px 8px;
+      font-size:16px;
+      box-sizing:border-box;
     }
 
     .creator-intro{
@@ -642,15 +651,7 @@
       color:var(--muted);
     }
 
-    @media (min-width:560px){
-      .date-add-row{
-        grid-template-columns:minmax(0,1fr) auto;
-      }
 
-      .date-add-row .secondary{
-        width:auto;
-      }
-    }
 
     @media (min-width:640px){
       .creator-grid.two{grid-template-columns:1.4fr .6fr}
